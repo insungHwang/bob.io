@@ -1,41 +1,62 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include <stdio.h>
-void Labeling(IplImage* Skin,int* map);
-int doLabeling(int x,int y,int* map ,IplImage* Skin);
-CvRect rect[100]; 
-int INDEX = 0;
+#include <string.h>
+int Labeling(IplImage* Skin);
+int doLabeling(int x,int y,IplImage* Skin);
+
+CvRect rect[100]={0}; 
+int INDEX = 1;
+int ** map;
 int main(){
 
 	int x=0, y=0;
 	int Cr=0, Cb=0, w=0, h=0;
 
+//	int** map;
+
 	IplImage* Image = 0;
 	Image = cvLoadImage("../test.1.jpeg",-1);
+	IplImage* YCbCr = cvCreateImage(cvGetSize(Image),8,3);
+	IplImage* Binary = cvCreateImage(cvGetSize(Image),8,1);
+	IplImage* init = cvCreateImage(cvGetSize(Image),8,1);
 
 	cvNamedWindow("Image",0);
 	cvNamedWindow("YCbCr",0);
 	cvNamedWindow("Binary",0);
+	cvNamedWindow("initcheck",0);
 
 	cvResizeWindow("Image",340,300);
 	cvResizeWindow("YCbCr",340,300);
 	cvResizeWindow("Binary",340,300);
-
-	IplImage* YCbCr = cvCreateImage(cvGetSize(Image),8,3);
-	IplImage* Binary = cvCreateImage(cvGetSize(Image),8,1);
+	cvResizeWindow("initcheck",340, 300);
 
 	cvCvtColor(Image,YCbCr,CV_RGB2YCrCb);
 
-	w = YCbCr->width;
-	h = YCbCr->height;
+	h = Image->height;
+	w = Image->width;
 
-	int* map;
-	map = (int*) malloc(w*h);
-	memset(map,-1,w*h*sizeof(int));
+	map = (int**) calloc(w,sizeof(int*));
+	for (x=0; x<w;  x++)
+		map[x] = (int*)calloc(h,sizeof(int));
 
 	printf("width = %d, height = %d\n",w,h);
 	
-	memset(rect,0,10*sizeof(CvRect));	
+	/// init check ///
+	
+	cvZero(init);
+	cvShowImage("initcheck",init);
+	printf("init done!!?\n");
+	
+	for(x=0;x<w;x++)
+		for(y=0;y<h;y++)
+			if(map[x][y]!=0){
+				printf("shit\n");
+				break;
+		}
+
+	//////////////////
+
 
 	for(y=0; y<h; y++){
 		for(x=1; x<w; x++){
@@ -52,7 +73,8 @@ int main(){
 				((unsigned char*)(Binary->imageData + Binary->widthStep*(y)))[(x)]=0;
 		}
 	}
-	Labeling(Binary,map);
+
+	Labeling(Binary);
 
 	printf("INDEX = %d\n",INDEX);
 	for(x = 0; x<INDEX; x++)
@@ -63,70 +85,85 @@ int main(){
 	cvShowImage("Binary",Binary);
 
 	cvWaitKey(0);
+
+	free(map);
 }
-void Labeling(IplImage* Skin,int* map){
+int Labeling(IplImage* Skin){
 	int x,y;
 	int w =(int) Skin->width;
 	int h =(int) Skin->height;
 
-	//int map[w][h];
-
-	//memset(map,-1,w*h*sizeof(int));
+	printf("in labeling\n	width = %d, height = %d\n",Skin->width, Skin->height);
 
 	for(x = 0; x<Skin->width; x++){
 		for(y = 0; y<Skin->height; y++){
-			if(doLabeling(x,y,map,Skin))
+			if(doLabeling(x,y,Skin)){
+//				printf("new index\n");
 				INDEX++;
+			}
+//			else
+//				printf("not found\n");
 		}
-}
+	}
 
 	for(x = 0; x<Skin->width; x++)
 		for(y = 0; y<Skin->height; y++)
 		{
-			if(map[x][y]!=-1){
-				if(rect[map[x][y]].x>x)
-					rect[map[x][y]].x = x;
-				else if(rect[map[x][y]].x+rect[map[x][y]].width<x)
-					rect[map[x][y]].width = x - rect[map[x][y]].x;
+			if(map[x][y]>0){
+				if(rect[map[x][y]-1].x>x)
+					rect[map[x][y]-1].x = x;
+				else if(rect[map[x][y]-1].x+rect[map[x][y]-1].width<x)
+					rect[map[x][y]-1].width = x - rect[map[x][y]-1].x;
 
 
-				if(rect[map[x][y]].y>y)
-					rect[map[x][y]].y = y;
-				else if(rect[map[x][y]].y+rect[map[x][y]].height<y)
-					rect[map[x][y]].height = y - rect[map[x][y]].y;
+				if(rect[map[x][y]-1].y>y)
+					rect[map[x][y]-1].y = y;
+				else if(rect[map[x][y]-1].y+rect[map[x][y]-1].height<y)
+					rect[map[x][y]-1].height = y - rect[map[x][y]-1].y;
 			}
 		}
 }
-int doLabeling(int x, int y, int* map,IplImage* Skin){
-	
-	if(map[x][y]==-1)
+int doLabeling(int x, int y, IplImage* Skin){
+	int w = Skin->width;	
+//	printf("do labeling\n");
+	if(map[x][y]>0)
 	{
-		if(x>1 && y>1)
-			doLabeling(x-1,y-1,map,Skin);
-		if(y>1)
-			doLabeling(x,y-1,map,Skin);
-		if(x<Skin->width && y>1)
-			doLabeling(x+1,y-1,map,Skin);
-		if(x>1)
-			doLabeling(x-1,y,map,Skin);
-		if(x<Skin->width)
-			doLabeling(x+1,y,map,Skin);
-		if(x>1 && y<Skin->height)
-			doLabeling(x-1,y+1,map,Skin);
-		if(y<Skin->height)
-			doLabeling(x,y+1,map,Skin);
-		if(x<Skin->width&& y<Skin->height)
-			doLabeling(x+1,y+1,map,Skin);
-
+//		printf("checking non-checked pixel\n");
+//		map[x][y] = -1;
+		return 0;
+	}
+	else if(map[x][y]==-1)
+		return 0;
+	else
+	{
 		if((unsigned int)(Skin->imageData + Skin->widthStep*(y))[x] == 0)
 		{
-			map[x][y]= INDEX;
+			map[x][y]=INDEX;
+
+			if(x>1 && y>1)
+				doLabeling(x-1,y-1,Skin);
+			if(y>1)
+				doLabeling(x,y-1,Skin);
+			if(x<Skin->width && y>1)
+				doLabeling(x+1,y-1,Skin);
+			if(x>1)
+				doLabeling(x-1,y,Skin);
+			if(x<Skin->width)
+				doLabeling(x+1,y,Skin);
+			if(x>1 && y<Skin->height)
+				doLabeling(x-1,y+1,Skin);
+			if(y<Skin->height)
+				doLabeling(x,y+1,Skin);
+			if(x<Skin->width&& y<Skin->height)
+				doLabeling(x+1,y+1,Skin);
+
 			return 1;
 		}
 		else
+		{
+			map[x][y] = -1;
 			return 0;
+		}
 	}
-	else
-		return 0;
-}
 
+}
