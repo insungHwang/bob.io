@@ -46,7 +46,8 @@ int main()
 		// 그레이랑 백그라운드랑 차이값을 다시 백그라운드에 저장 
 		
 		cvCvtColor(frame,YCrCb,CV_RGB2YCrCb);
-		for(y=0; y<height;y++)
+		
+		for(y=0; y<height;y++)//차영상 +얼굴영역 추출
 		{
 			for(x=0; x<width; x++)
 			{
@@ -55,7 +56,7 @@ int main()
 					Cr = (char)YCrCb->imageData[y*YCrCb->widthStep+3*x+1];
 					Cb = (char)YCrCb->imageData[y*YCrCb->widthStep+3*x+2];
 	
-					if( (77<Cr&&Cr<127) && (133<Cb&&Cb<173) )
+					if( (133<Cr&&Cr<173) && (77<Cb&&Cb<127) )
 						Skin->imageData[y*Skin->widthStep+x] = 0;
 					else
 	
@@ -68,12 +69,14 @@ int main()
 		}
 
 		cvCvtColor(frame,bkgImage,CV_RGB2GRAY); // 배경을 그레이로 변환하
+
+
 		cvSmooth(Skin,Skin,CV_GAUSSIAN,1);
 	//	cvSmooth(Skin,Skin,CV_MEDIAN,1);
 		printf("%f sec\n",(double)(clock()-start)/CLOCKS_PER_SEC);
 		
 		cvErode(Skin, Skin, NULL, 4);  //침식
-    	cvDilate(Skin, Skin, NULL,1 ); //팽창
+    	cvDilate(Skin, Skin, NULL,2 ); //팽창
 	    //cvSmooth(Skin,Skin,CV_GAUSSIAN,1);
 		cvShowImage("Result",Skin);
 		if(cvWaitKey(33)==27)
