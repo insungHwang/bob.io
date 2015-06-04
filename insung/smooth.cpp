@@ -46,17 +46,16 @@ int main()
 		// 그레이랑 백그라운드랑 차이값을 다시 백그라운드에 저장 
 		
 		cvCvtColor(frame,YCrCb,CV_RGB2YCrCb);
-		
-		for(y=0; y<height;y++)//차영상 +얼굴영역 추출
+		for(y=0; y<height;y++)
 		{
 			for(x=0; x<width; x++)
 			{
-				if((Diff->imageData[y*Diff->widthStep+x])>1) // 차이값이 1이상놈의 픽셀만 검사
+				if((Diff->imageData[y*Diff->widthStep+x])>25) // 차이값이 1이상놈의 픽셀만 검사
 				{
 					Cr = (char)YCrCb->imageData[y*YCrCb->widthStep+3*x+1];
 					Cb = (char)YCrCb->imageData[y*YCrCb->widthStep+3*x+2];
 	
-					if( (133<Cr&&Cr<173) && (77<Cb&&Cb<127) )
+					if( (77<Cr&&Cr<127) && (133<Cb&&Cb<173) )
 						Skin->imageData[y*Skin->widthStep+x] = 0;
 					else
 	
@@ -69,8 +68,6 @@ int main()
 		}
 
 		cvCvtColor(frame,bkgImage,CV_RGB2GRAY); // 배경을 그레이로 변환하
-
-
 		cvSmooth(Skin,Skin,CV_GAUSSIAN,1);
 	//	cvSmooth(Skin,Skin,CV_MEDIAN,1);
 		printf("%f sec\n",(double)(clock()-start)/CLOCKS_PER_SEC);
