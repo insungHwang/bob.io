@@ -1,6 +1,6 @@
 /*
-   테스트 15
-   좌표를 이용해서 잘라진 영상 확실히
+   테스트 16
+   가장 최근의 ROI
 */
 
 
@@ -50,6 +50,7 @@ int main()
 //		cvShowImage("Original",frame);
 		
 		cvSmooth(frame,frame,CV_GAUSSIAN,3); // 필터를 통해 노이즈를 없앤다
+		
 
 		height = frame->height;
 		width = frame->width;
@@ -109,6 +110,12 @@ int main()
 		start_y = lefttop_y; // 시작점의 y값
 		width_ROI = rightbottom_x - lefttop_x; // 잘라진 영역의 너비
 		height_ROI = rightbottom_y - lefttop_y; // 잘라진 영역의 높이
+		if(width_ROI <= 10 || height_ROI <= 10)
+		{
+			width_ROI = 10;
+			height_ROI = 10;
+		}
+				
 		
 	//	printf("시작 x=%d y=%d \n",lefttop_x,lefttop_y); // 왼쪽 상단 좌표 출력  
 	//	printf("너비 높이 wid=%d hei=%d \n",width_ROI,height_ROI); // 너비랑 높이 출력
@@ -121,13 +128,13 @@ int main()
 
 		cvCvtColor(frame,bkgImage,CV_RGB2GRAY); // 배경을 그레이로 변환하
 
-		printf("%f sec\n",(double)(clock()-start)/CLOCKS_PER_SEC);
 		cvShowImage("Result",Skin);
 		cvShowImage("ROI",ROI);
 		cvResetImageROI(ROI); // 이미지 리셋 
 		
 		if(cvWaitKey(33)==27)
 			break;
+		printf("%f sec\n",(double)(clock()-start)/CLOCKS_PER_SEC);
 	}
 	cvReleaseImage(&frame);
 	cvReleaseCapture(&capture);
