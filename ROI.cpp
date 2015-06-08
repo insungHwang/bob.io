@@ -1,6 +1,7 @@
 /*
-   테스트 16
-   가장 최근의 ROI
+   테스트 18
+   잘라낸 영상이 RGB가 되게 -> 성공
+   이제부터 git을 사용할것입니다.
 */
 
 
@@ -38,7 +39,7 @@ int main()
 	IplImage* Gray = cvCreateImage(cvGetSize(frame),8,1); // 카메라 이진화
 	IplImage* YCrCb = cvCreateImage(cvGetSize(frame),8,3); // ycrcb 변환
 	IplImage* Skin = cvCreateImage(cvGetSize(frame),8,1); // 피부 이진화
-	IplImage* ROI = cvCreateImage(cvGetSize(frame),8,1); // 잘라진 영상
+	IplImage* ROI = cvCreateImage(cvGetSize(frame),IPL_DEPTH_8U,3); // 잘라진 영상
 	IplImage* Diff = cvCreateImage(cvGetSize(frame),8,1); // 카메라와 배경의 차이값을 가지고 있음
 	
 	while(1)
@@ -104,8 +105,10 @@ int main()
 			}
 		
 		}
-		cvCopy(Skin,ROI); // skin영상을 ROI에 복사한다. 
-
+	
+		printf("frame:  \n");
+		cvCopy(frame,ROI); // skin영상을 ROI에 복사한다. 
+		printf("here1 \n");
 		start_x = lefttop_x ; // 시작점의 x값
 		start_y = lefttop_y; // 시작점의 y값
 		width_ROI = rightbottom_x - lefttop_x; // 잘라진 영역의 너비
@@ -117,8 +120,8 @@ int main()
 		}
 				
 		
-	//	printf("시작 x=%d y=%d \n",lefttop_x,lefttop_y); // 왼쪽 상단 좌표 출력  
-	//	printf("너비 높이 wid=%d hei=%d \n",width_ROI,height_ROI); // 너비랑 높이 출력
+		printf("시작 x=%d y=%d \n",lefttop_x,lefttop_y); // 왼쪽 상단 좌표 출력  
+		printf("너비 높이 wid=%d hei=%d \n",width_ROI,height_ROI); // 너비랑 높이 출력
 
 		cvSetImageROI(ROI,cvRect(start_x,start_y,width_ROI,height_ROI)); // 영역 잘라냄
 
@@ -128,7 +131,7 @@ int main()
 
 		cvCvtColor(frame,bkgImage,CV_RGB2GRAY); // 배경을 그레이로 변환하
 
-		cvShowImage("Result",Skin);
+//		cvShowImage("Result",Skin);
 		cvShowImage("ROI",ROI);
 		cvResetImageROI(ROI); // 이미지 리셋 
 		
@@ -138,8 +141,8 @@ int main()
 	}
 	cvReleaseImage(&frame);
 	cvReleaseCapture(&capture);
-	cvDestroyWindow("Original");
-	cvDestroyWindow("Result");
+//	cvDestroyWindow("Original");
+//	cvDestroyWindow("Result");
 	cvDestroyWindow("ROI");
 
 	return 0;
